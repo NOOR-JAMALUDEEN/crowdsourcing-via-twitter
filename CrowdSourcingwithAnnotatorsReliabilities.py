@@ -498,7 +498,7 @@ array_SdAccuracy=[10]
 array_meanLikelihood=[1]##,5,10,15]##,5,10,15]
 array_nb_tweets=[1000]##[100,250,500,1000,5000]
 nb_rounds=3
-rel_annt_percent=0.3
+rel_annt_percent=0.7
 
 step=100
 result=[]
