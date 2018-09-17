@@ -488,19 +488,19 @@ def mainRunForIncremental(annt_responses_local,nb_labels,tweets_topics_local,gro
 
 
 #===========================================================================================
-array_nb_topics=[10]
-array_nb_annotators=[1500]##[5,10,25,30]
+array_nb_topics=[15]
+array_nb_annotators=[500]##[5,10,25,30]
 array_maxFeatures=[2000]
 array_midDf=[1]
 array_maxiter=[700]
 array_meanAccuarcy=[10]#,40]
 array_SdAccuracy=[10]
 array_meanLikelihood=[1]##,5,10,15]##,5,10,15]
-array_nb_tweets=[1000]##[100,250,500,1000,5000]
+array_nb_tweets=[5000]##[100,250,500,1000,5000]
 nb_rounds=3
-rel_annt_percent=0.7
+rel_annt_percent=0.4
 
-step=100
+step=1000
 result=[]
   
 for nb_t in array_nb_topics:
