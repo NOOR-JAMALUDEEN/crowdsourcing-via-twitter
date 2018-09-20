@@ -452,6 +452,44 @@ def mainRunWithSparsity(annt_responses_local,annt_topics_local,annt_topics_float
     
     ##print(mv_annt_tpc)
     return (accu,rel_acc)
+##==========================================================No Ranking======================================================
+    
+def mainRunWithSparsityNoranking(annt_responses_local,annt_topics_local,annt_topics_float,nb_labels,tweets_topics_loc,groundTruth_temp_local):
+    nb_topics=len(annt_topics_local[0])
+    trueLabels=[]
+    annt_tpc=[]
+    majority_voting=[]
+    annt_mv_tpc=[]
+    mv_withTopics=[]
+    mv_annt_tpc=[]
+    accu=[]
+    rel_acc=[]
+    '''
+    (trueLabels,annt_tpc)=kappaInteragreemtWithTopics(annt_responses_local,nb_labels,tweets_topics_loc,groundTruth_temp_local)
+    rel_acc.append(accuracyReliability(annt_topics_local,annt_tpc))
+    accu.append(accuracy(trueLabels,groundTruth_temp_local,'Kappa-agreement with topics',annt_responses_local,tweets_topics_loc))
+    print("annt_tpc kappa",annt_tpc)
+    print("trueLabels kapppa")
+    print(trueLabels)
+    '''
+    (mv_withTopics,mv_annt_tpc)=mvWithTopics(annt_responses_local,nb_topics,nb_labels,groundTruth_temp_local,tweets_topics_loc) 
+    accu.append(accuracy(mv_withTopics,groundTruth_temp_local,'Majority Voting with Topics',annt_responses_local,tweets_topics_loc))
+    rel_acc.append(accuracyReliability(annt_topics_local,mv_annt_tpc))
+    print("mv with topics",mv_annt_tpc)
+    print("mv_withTopics truelabe")
+    print(mv_withTopics)
+    '''
+    (majority_voting,annt_mv_tpc)=majorityVoting(annt_responses_local,nb_labels,nb_topics,tweets_topics_loc)
+    accu.append(accuracy(majority_voting,groundTruth_temp_local,'Majority Voting',annt_responses_local,tweets_topics_loc))
+    rel_acc.append(accuracyReliability(annt_topics_local,annt_mv_tpc))
+    
+    print("majority voting",annt_mv_tpc)
+    print("majority_voting")
+    print(majority_voting)
+    '''
+    ##print(mv_annt_tpc)
+    return (accu,rel_acc)
+
 #===================Test===========================================================
 def mainRunForIncremental(annt_responses_local,nb_labels,tweets_topics_local,groundTruth_temp_local,global_annt_tpc_Kappa,global_annt_tpc_MvTopics,global_annt_tpc_MV):
     nb_topics=len(tweets_topics_local[0])
@@ -474,12 +512,13 @@ def mainRunForIncremental(annt_responses_local,nb_labels,tweets_topics_local,gro
     rel_acc.append(accumulateReliability(global_annt_tpc_MvTopics,mv_annt_tpc))
     print("incremental mv with topics",mv_annt_tpc)
     print("mv_withTopics incremental truth",mv_withTopics)
+    '''
     (majority_voting,annt_mv_tpc)=majorityVoting(annt_responses_local,nb_labels,nb_topics,tweets_topics_local)
     accu.append(accuracyIncremental(majority_voting,groundTruth_temp_local,'Majority Voting',annt_responses_local,tweets_topics_local))
     rel_acc.append(accumulateReliability(global_annt_tpc_MV,annt_mv_tpc))
     print("incremental majority voting",annt_mv_tpc)
     print("mv incremental ",majority_voting)
-   
+    '''   
     
     ##print(mv_annt_tpc)
     return (accu,rel_acc,global_annt_tpc_Kappa,global_annt_tpc_MvTopics,global_annt_tpc_MV)
@@ -488,8 +527,8 @@ def mainRunForIncremental(annt_responses_local,nb_labels,tweets_topics_local,gro
 
 
 #===========================================================================================
-array_nb_topics=[10]
-array_nb_annotators=[1500]##[5,10,25,30]
+array_nb_topics=[15]
+array_nb_annotators=[100]##[5,10,25,30]
 array_maxFeatures=[2000]
 array_midDf=[1]
 array_maxiter=[700]
@@ -498,7 +537,7 @@ array_SdAccuracy=[10]
 array_meanLikelihood=[1]##,5,10,15]##,5,10,15]
 array_nb_tweets=[1000]##[100,250,500,1000,5000]
 nb_rounds=3
-rel_annt_percent=0.3
+rel_annt_percent=0.4
 
 step=100
 result=[]
@@ -699,7 +738,7 @@ for nb_t in array_nb_topics:
              import math
              maximum=math.floor(mv_nb.max())
              ##print('mv_nb',mv_nb)
-             for i in range(0,maximum):
+             for i in range(0,int(maximum)):
                  for j in range(0,len(mv_nb)):
                   if mv_nb[j]==(maximum-i) and mv_nb[j]!=0:
                       res_ord_list.append(annt_responses[:,j])
@@ -778,23 +817,23 @@ for nb_t in array_nb_topics:
              annotated_tweets_NoRanking=len(annt_res_ordered_tran[0])
              tweets_topics_ordered=np.asarray(tweets_topics_ord_list)
              avg_annotated_tweets_NoRanking=avg_annotated_tweets_NoRanking+annotated_tweets_NoRanking
-             (acc_NoRanking,err_rel_NoRanking)=mainRunWithSparsity(annt_res_ordered_tran,annt_topics,annt_topicsFloat,nb_labels,tweets_topics_ordered,groundTruth_order_tran)
+             (acc_NoRanking,err_rel_NoRanking)=mainRunWithSparsityNoranking(annt_res_ordered_tran,annt_topics,annt_topicsFloat,nb_labels,tweets_topics_ordered,groundTruth_order_tran)
              acc_NoRanking=np.asarray(acc_NoRanking)
              err_rel_NoRanking=np.asarray(err_rel_NoRanking)
              
-             accuracy_Kappa_interagreement_NoRanking=accuracy_Kappa_interagreement_NoRanking+(acc_NoRanking[0])
-             accuracy_MvWithTopics_NoRanking=accuracy_MvWithTopics_NoRanking+(acc_NoRanking[1])
-             accuracy_MV_NoRanking=accuracy_MV_NoRanking+(acc_NoRanking[2])
-             rel_accuracy_Kappa_interagreement_NoRanking=rel_accuracy_Kappa_interagreement_NoRanking+err_rel_NoRanking[0]
-             rel_accuracy_MvWithTopics_NoRanking=rel_accuracy_MvWithTopics_NoRanking+err_rel_NoRanking[1]
-             rel_accuracy_MV_NoRanking=rel_accuracy_MV_NoRanking+err_rel_NoRanking[2]
+             ##accuracy_Kappa_interagreement_NoRanking=accuracy_Kappa_interagreement_NoRanking+(acc_NoRanking[0])
+             accuracy_MvWithTopics_NoRanking=accuracy_MvWithTopics_NoRanking+(acc_NoRanking[0])
+             ##accuracy_MV_NoRanking=accuracy_MV_NoRanking+(acc_NoRanking[2])
+             ##rel_accuracy_Kappa_interagreement_NoRanking=rel_accuracy_Kappa_interagreement_NoRanking+err_rel_NoRanking[0]
+             rel_accuracy_MvWithTopics_NoRanking=rel_accuracy_MvWithTopics_NoRanking+err_rel_NoRanking[0]
+             ##rel_accuracy_MV_NoRanking=rel_accuracy_MV_NoRanking+err_rel_NoRanking[2]
          
-             avg_accuracy_Kappa_interagreement_NoRanking=accuracy_Kappa_interagreement_NoRanking+avg_accuracy_Kappa_interagreement_NoRanking
+             ##avg_accuracy_Kappa_interagreement_NoRanking=accuracy_Kappa_interagreement_NoRanking+avg_accuracy_Kappa_interagreement_NoRanking
              avg_accuracy_MvWithTopics_NoRanking=accuracy_MvWithTopics_NoRanking+avg_accuracy_MvWithTopics_NoRanking
-             avg_accuracy_MV_NoRanking=accuracy_MV_NoRanking+avg_accuracy_MV_NoRanking
-             avg_rel_accuracy_Kappa_interagreement_NoRanking=rel_accuracy_Kappa_interagreement_NoRanking+avg_rel_accuracy_Kappa_interagreement_NoRanking
+             ##avg_accuracy_MV_NoRanking=accuracy_MV_NoRanking+avg_accuracy_MV_NoRanking
+             ##avg_rel_accuracy_Kappa_interagreement_NoRanking=rel_accuracy_Kappa_interagreement_NoRanking+avg_rel_accuracy_Kappa_interagreement_NoRanking
              avg_rel_accuracy_MvWithTopics_NoRanking=rel_accuracy_MvWithTopics_NoRanking+avg_rel_accuracy_MvWithTopics_NoRanking
-             avg_rel_accuracy_MV_NoRanking=rel_accuracy_MV_NoRanking+avg_rel_accuracy_MV_NoRanking
+             ##avg_rel_accuracy_MV_NoRanking=rel_accuracy_MV_NoRanking+avg_rel_accuracy_MV_NoRanking
              print(rel_accuracy_MV_NoRanking)        
              print(avg_rel_accuracy_MV_NoRanking) 
                
@@ -844,7 +883,7 @@ for nb_t in array_nb_topics:
                import math
                maximum=math.floor(mv_nb.max())
                  ##print('mv_nb',mv_nb)
-               for i in range(0,maximum):
+               for i in range(0,int(maximum)):
                      for j in range(0,len(mv_nb)):
                       if mv_nb[j]==(maximum-i) and mv_nb[j]!=0:
                           res_ord_list.append(annt_responses1[:,j])
@@ -872,7 +911,7 @@ for nb_t in array_nb_topics:
                    err_rel_incremental=np.asanyarray(err_rel_incremental)
                    accuracy_Kappa_interagreement_incremental=accuracy_Kappa_interagreement_incremental+(acc_incremental[0])
                    accuracy_MvWithTopics_incremental=accuracy_MvWithTopics_incremental+(acc_incremental[1])
-                   accuracy_MV_incremental=accuracy_MV_incremental+(acc_incremental[2])
+                   ##accuracy_MV_incremental=accuracy_MV_incremental+(acc_incremental[2])
                    '''rel_accuracy_Kappa_interagreement_incremental=rel_accuracy_Kappa_interagreement_incremental+err_rel_incremental[0]
                    rel_accuracy_MvWithTopics_incremental=rel_accuracy_MvWithTopics_incremental+err_rel_incremental[1]
                    rel_accuracy_MV_incremental=rel_accuracy_MV_incremental+err_rel_incremental[2]
@@ -884,21 +923,21 @@ for nb_t in array_nb_topics:
                  for col in range(0,len(annt_topics[0])):
                      global_annt_topics_kappa[row,col]=global_annt_topics_kappa[row,col]-nb_batches
                      global_annt_topics_mvTopic[row,col]=global_annt_topics_mvTopic[row,col]-nb_batches
-                     global_annt_topics_mv[row,col]=global_annt_topics_mv[row,col]-nb_batches
+                     ##global_annt_topics_mv[row,col]=global_annt_topics_mv[row,col]-nb_batches
              print("incremetal kappa")
              print(global_annt_topics_kappa)
              avg_annotated_tweets_incremental=avg_annotated_tweets_incremental+sum_annotated_tweets_incremental
              accuracy_Kappa_interagreement_incremental=accuracy_Kappa_interagreement_incremental /sum_annotated_tweets_incremental   
              accuracy_MvWithTopics_incremental=accuracy_MvWithTopics_incremental/sum_annotated_tweets_incremental
-             accuracy_MV_incremental=accuracy_MV_incremental/sum_annotated_tweets_incremental
+             ##accuracy_MV_incremental=accuracy_MV_incremental/sum_annotated_tweets_incremental
              ##print(accuracy_Kappa_interagreement_incremental,accuracy_MvWithTopics_incremental,accuracy_MV_incremental)
              avg_accuracy_Kappa_interagreement_incremental=accuracy_Kappa_interagreement_incremental +avg_accuracy_Kappa_interagreement_incremental   
              avg_accuracy_MvWithTopics_incremental=accuracy_MvWithTopics_incremental+avg_accuracy_MvWithTopics_incremental
-             avg_accuracy_MV_incremental=accuracy_MV_incremental+avg_accuracy_MV_incremental
+             ##avg_accuracy_MV_incremental=accuracy_MV_incremental+avg_accuracy_MV_incremental
              avg_rel_accuracy_Kappa_interagreement_incremental=avg_rel_accuracy_Kappa_interagreement_incremental+accuracyReliability(annt_topics,global_annt_topics_kappa)
              print("noor",avg_rel_accuracy_Kappa_interagreement_incremental)
              avg_rel_accuracy_MvWithTopics_incremental=avg_rel_accuracy_MvWithTopics_incremental+accuracyReliability(annt_topics,global_annt_topics_mvTopic)
-             avg_rel_accuracy_MV_incremental=avg_rel_accuracy_MV_incremental+accuracyReliability(annt_topics,global_annt_topics_mv)
+             ##avg_rel_accuracy_MV_incremental=avg_rel_accuracy_MV_incremental+accuracyReliability(annt_topics,global_annt_topics_mv)
              
 ##====================================incremental train===============================================
                     
@@ -911,20 +950,20 @@ for nb_t in array_nb_topics:
          avg_rel_accuracy_MV=avg_rel_accuracy_MV/nb_rounds
          avg_annotated_tweets=avg_annotated_tweets/nb_rounds
          
-         avg_accuracy_Kappa_interagreement_NoRanking=avg_accuracy_Kappa_interagreement_NoRanking/nb_rounds
+         ##avg_accuracy_Kappa_interagreement_NoRanking=avg_accuracy_Kappa_interagreement_NoRanking/nb_rounds
          avg_accuracy_MvWithTopics_NoRanking=avg_accuracy_MvWithTopics_NoRanking/nb_rounds
-         avg_accuracy_MV_NoRanking=avg_accuracy_MV_NoRanking/nb_rounds
-         avg_rel_accuracy_Kappa_interagreement_NoRanking=avg_rel_accuracy_Kappa_interagreement_NoRanking/nb_rounds
+         ##avg_accuracy_MV_NoRanking=avg_accuracy_MV_NoRanking/nb_rounds
+         ##avg_rel_accuracy_Kappa_interagreement_NoRanking=avg_rel_accuracy_Kappa_interagreement_NoRanking/nb_rounds
          avg_rel_accuracy_MvWithTopics_NoRanking=avg_rel_accuracy_MvWithTopics_NoRanking/nb_rounds
-         avg_rel_accuracy_MV_NoRanking=avg_rel_accuracy_MV_NoRanking/nb_rounds
+         ##avg_rel_accuracy_MV_NoRanking=avg_rel_accuracy_MV_NoRanking/nb_rounds
          avg_annotated_tweets_NoRanking=avg_annotated_tweets_NoRanking/nb_rounds
          
          avg_accuracy_Kappa_interagreement_incremental=avg_accuracy_Kappa_interagreement_incremental/nb_rounds
          avg_accuracy_MvWithTopics_incremental=avg_accuracy_MvWithTopics_incremental/nb_rounds
-         avg_accuracy_MV_incremental=avg_accuracy_MV_incremental/nb_rounds
+         #avg_accuracy_MV_incremental=avg_accuracy_MV_incremental/nb_rounds
          avg_rel_accuracy_Kappa_interagreement_incremental=avg_rel_accuracy_Kappa_interagreement_incremental/nb_rounds
          avg_rel_accuracy_MvWithTopics_incremental=avg_rel_accuracy_MvWithTopics_incremental/nb_rounds
-         avg_rel_accuracy_MV_incremental=avg_rel_accuracy_MV_incremental/nb_rounds
+         #avg_rel_accuracy_MV_incremental=avg_rel_accuracy_MV_incremental/nb_rounds
          avg_annotated_tweets_incremental=avg_annotated_tweets_incremental/nb_rounds
          
          row_csv.append(avg_accuracy_Kappa_interagreement)
@@ -957,12 +996,12 @@ for nb_t in array_nb_topics:
          row_csv.append(nb_a)
          row_csv.append("tweets.csv")
          row_csv.append(rel_annt_percent)
-         row_csv.append(avg_accuracy_Kappa_interagreement_NoRanking)
-         row_csv.append(avg_rel_accuracy_Kappa_interagreement_NoRanking)
+         row_csv.append(avg_accuracy_Kappa_interagreement)
+         row_csv.append(avg_rel_accuracy_Kappa_interagreement)
          row_csv.append(avg_accuracy_MvWithTopics_NoRanking)
          row_csv.append(avg_rel_accuracy_MvWithTopics_NoRanking)
-         row_csv.append(avg_accuracy_MV_NoRanking)
-         row_csv.append(avg_rel_accuracy_MV_NoRanking)
+         row_csv.append(avg_accuracy_MV)
+         row_csv.append(avg_rel_accuracy_MV)
          row_csv.append(avg_annotated_tweets_NoRanking)
          row_csv.append("NoRanking")
          
@@ -981,8 +1020,8 @@ for nb_t in array_nb_topics:
          row_csv.append(avg_rel_accuracy_Kappa_interagreement_incremental)
          row_csv.append(avg_accuracy_MvWithTopics_incremental)
          row_csv.append(avg_rel_accuracy_MvWithTopics_incremental)
-         row_csv.append(avg_accuracy_MV_incremental)
-         row_csv.append(avg_rel_accuracy_MV_incremental)
+         row_csv.append(avg_accuracy_MV)
+         row_csv.append(avg_rel_accuracy_MV)
          row_csv.append(avg_annotated_tweets_incremental)
          row_csv.append("incremental")
          
