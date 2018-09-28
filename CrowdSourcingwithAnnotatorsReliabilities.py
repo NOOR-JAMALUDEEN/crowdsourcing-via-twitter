@@ -89,7 +89,7 @@ def simulateLabelsTopicsDependent(groundTruth,tweets_oneTopic,topics,numberAnnot
     val1=val1/100
     if val1>0.0 and val1<1.0:
        likelihood.append(val1)
-       ##likelihood.append(0.5)
+       #likelihood.append(1.0)
        done=True
   annt_counter=[]
   for m in range(0,numberAnnotators):
@@ -180,23 +180,24 @@ def calculateReliability(groundTruth,annt_responses,nb_topics,numberTweets,tweet
 #=============== Kappa inter-agreement=============================
 def kappa_aggreement(annt_responses_local,nb_labels):
     kappa_agree=[]
+    kappa_agree_temp=np.zeros((len(annt_responses_local),len(annt_responses_local)))
+    norms=np.full((len(annt_responses_local)),1.0)
     nb_annotators=len(annt_responses_local)
     nb_tweets=len(annt_responses_local[0])
     
     for i in range(0,nb_annotators):
-     norm=0
+     norm=1.0
      kappa=0.0
-     for j in range(0,nb_annotators):
+     for j in range(i+1,nb_annotators):
         common=False
         confusion=np.full((nb_labels,nb_labels),0)
         for z in range(0,nb_tweets):
-            for l in range(1,nb_labels+1):
-               
-               if annt_responses_local[i][z]!=0 and annt_responses_local[j][z]!=0:
+          if annt_responses_local[i][z]!=0 and annt_responses_local[j][z]!=0:
                    common=True 
                    confusion[(annt_responses_local[i][z])-1][(annt_responses_local[j][z])-1]=confusion[(annt_responses_local[i][z])-1][(annt_responses_local[j][z])-1]+1
         if common==True:
-            norm=norm+1
+            norms[i]=norms[i]+1
+            norms[j]=norms[j]+1
         total=confusion.sum()
         pra=0.0
         if total!=0.0:
@@ -209,14 +210,24 @@ def kappa_aggreement(annt_responses_local,nb_labels):
             pre=pre+(cols[d]*rows[d])/total
         if total!=0.0: 
          pre=pre/total
+        kappa_agree_temp[i,i]=1.0 
         if pre!=1: 
-         kappa=kappa+((pra-pre)/(1.0-pre))
-     if (norm!=0):    
-      kappa_agree.append(kappa/(norm))
-     else:
-      kappa_agree.append(0.0)  
-    ##print('kappa_Agree',kappa_agree)
-    return kappa_agree
+         #print(i,j,(pra-pre)/(1.0-pre))
+         #print(confusion)
+         
+         kappa_agree_temp[i,j]=((pra-pre)/(1.0-pre))
+         kappa_agree_temp[j,i]=((pra-pre)/(1.0-pre))
+    
+    kappa_agree_temp[nb_annotators-1,nb_annotators-1]=1.0
+    print("kappa_agree_temp",kappa_agree_temp)
+    print("norms",norms)
+    for i1 in range(0,nb_annotators):
+     kappa=0.0 
+     for i2 in range(0,nb_annotators):
+      kappa=kappa+kappa_agree_temp[i1,i2]
+     kappa_agree.append(kappa/norms[i1]) 
+    print("kappa_agree",kappa_agree)
+    return (kappa_agree)
  
 #===============End Kappa inter- agreement========================
 #============Kappa with topics============================
@@ -229,7 +240,7 @@ def kappaInteragreemtWithTopics(annt_responses_local,nb_labels,tweets_topics_loc
     Kappa_trueLabels=[]
     onlylabel=0.0
     for i in range(0,nb_tweets):
-     highsim=0.0
+     highsim=-10000000.0
      truelabel=0
      for label in range(1,nb_labels+1):
          sim=0.0
@@ -326,7 +337,7 @@ def mvWithTopics(annt_responses_local,nb_topics,nb_labels,groundTruth_local,twee
     annt_tpc=np.full((len(annt_responses_local),nb_topics),1.0)
     annt_tpc_test=np.full((len(annt_responses_local),nb_topics),1.0)
     for i in range(0,nb_tweets):
-     highsim=0.0
+     highsim=-10000000000.0
      truelabel=0
      counter=0
      for nA in range(0,len(annt_responses_local)):
@@ -337,7 +348,6 @@ def mvWithTopics(annt_responses_local,nb_topics,nb_labels,groundTruth_local,twee
          accm=0
          for j in range(0,nb_annotators):
              if annt_responses_local[j][i]==label:
-                 
                  for c in range(0,nb_topics):
                   if tweets_topics_local[i,c]!=0.0:
                    accm=accm+(annt_tpc[j,c])
@@ -365,10 +375,10 @@ def mvWithTopics(annt_responses_local,nb_topics,nb_labels,groundTruth_local,twee
               ##annt_tpc_test=annt_tpc_test+tweets_topics[i,c]
       '''else:
              for c in range(0,nb_topics):
-                  if tweets_topics[i,c]!=0.0 and annt_responses[j][i]!=0:
+                  if tweets_topics_local[i,c]!=0.0 and annt_responses_local[k][i]!=0:
                     #annt_tpc[j,c]=round(annt_tpc[j,c]-(tweets_topics[i,c]/topics[c]),4)
-                    annt_tpc[j,c]=round(annt_tpc[j,c]-(tweets_topics[i,c]),4)
-                    ##annt_tpc[j,c]=annt_tpc[j,c]-1'''
+                    #annt_tpc[j,c]=round(annt_tpc[j,c]-(tweets_topics[i,c]),4)
+                    annt_tpc[k,c]=annt_tpc[k,c]-1'''
     ##return (trueLabels,annt_tpc,annt_tpc_test)
     return (trueLabels,annt_tpc)
  
@@ -528,7 +538,7 @@ def mainRunForIncremental(annt_responses_local,nb_labels,tweets_topics_local,gro
 
 #===========================================================================================
 array_nb_topics=[15]
-array_nb_annotators=[100]##[5,10,25,30]
+array_nb_annotators=[500]##[5,10,25,30]
 array_maxFeatures=[2000]
 array_midDf=[1]
 array_maxiter=[700]
@@ -537,7 +547,7 @@ array_SdAccuracy=[10]
 array_meanLikelihood=[1]##,5,10,15]##,5,10,15]
 array_nb_tweets=[1000]##[100,250,500,1000,5000]
 nb_rounds=3
-rel_annt_percent=0.4
+rel_annt_percent=0.2
 
 step=100
 result=[]
@@ -557,12 +567,13 @@ for nb_t in array_nb_topics:
          row_csv.append(nb_t)
          row_csv.append(nb_a)
          row_csv.append("tweets.csv")
+         #row_csv.append("finalizedfull.csv")
          row_csv.append(rel_annt_percent)
          
-         ##dataset = pd.read_csv("finalizedfull.csv")
+         #dataset = pd.read_csv("finalizedfull.csv")
          dataset = pd.read_csv("Tweets.csv")
          data = dataset['text']
-         ##data = dataset['tweet']
+         #data = dataset['tweet']
          vectorizer = TfidfVectorizer(max_features=mF, min_df=mD, stop_words='english')
          X = vectorizer.fit_transform(data)
          features1=vectorizer.get_feature_names()
@@ -621,14 +632,23 @@ for nb_t in array_nb_topics:
          ##ss=S[:nb_tweets]
          ss=oneTopicMatrix[:nb_tweets]
          tweets_topics=[]
+         tweets_topics1=[]
          groundTruth_temp=[]
+         
          documents = dataset[['airline_sentiment','text']]
          documents.replace({'neutral': 1, 'positive': 2, 'negative': 3}, inplace=True)
          groundTruth=documents['airline_sentiment']
+         '''
+         documents = dataset[['senti','tweet']]
+         documents.replace({0: 1, 4: 2, 2: 3}, inplace=True)
+         groundTruth=documents['senti']
+         
+         '''
          groundTruth=groundTruth.values
          twe_tpc=[]
+         v=0
          for i in range(0,len(ss)):
-             v=0
+             
              contain=False
              for j in range(0,len(ss[0])):
                  if ss[i,j]!=0.0:
@@ -637,12 +657,15 @@ for nb_t in array_nb_topics:
               v=v+1
               twe_tpc.append(ss[i])
               groundTruth_temp.append(groundTruth[i])
-         print("v",v)
          
-         tweets_topics=np.asarray(twe_tpc)
-         tweets_topics=tweets_topics[range(0,nb_tweets),]
+         print("v",v)
+         tweets_topics1=np.asarray(twe_tpc)
+         
+         tweets_topics=tweets_topics1[range(0,nb_tweets),]
+         #tweets_topics=tweets_topics1[range(0,v),]
          groundTruth_temp=np.asarray(groundTruth_temp)
          groundTruth_temp=groundTruth_temp[range(0,nb_tweets),]
+         #groundTruth_temp=groundTruth_temp[range(0,v),]
          nb_tweets=len(tweets_topics)
          print("tweets_topics",tweets_topics)
          nb_topics=len(tweets_topics[0])
@@ -677,14 +700,14 @@ for nb_t in array_nb_topics:
          avg_rel_accuracy_MvWithTopics_incremental=0.0
          avg_rel_accuracy_MV_incremental=0.0
          
-         avg_annotated_tweets=0
-         avg_annotated_tweets_NoRanking=0
-         avg_annotated_tweets_incremental=0
+         avg_annotated_tweets=0.0
+         avg_annotated_tweets_NoRanking=0.0
+         avg_annotated_tweets_incremental=0.0
          
          for i in range (0,nb_rounds): 
-             annotated_tweets=0
-             annotated_tweets_NoRanking=0
-             annotated_tweets_incremental=0
+             annotated_tweets=0.0
+             annotated_tweets_NoRanking=0.0
+             annotated_tweets_incremental=0.0
              
              accuracy_Kappa_interagreement=0.0
              accuracy_MvWithTopics=0.0
@@ -710,6 +733,10 @@ for nb_t in array_nb_topics:
              print(groundTruth_temp)
              print("annt_topics")
              print(annt_topics)
+             with open('responses.csv', 'w') as rescsv:
+              writer= csv.writer(rescsv,lineterminator='\n')
+              writer.writerows(annt_responses)
+              rescsv.close()
              
 
 ##======================================Main scenario====================================
@@ -855,7 +882,8 @@ for nb_t in array_nb_topics:
              global_annt_topics_mv=np.full((len(annt_responses),len(tweets_topics[0])),1.0)
              global_annt_topics_mvTopic=np.full((len(annt_responses),len(tweets_topics[0])),1.0)
              global_annt_topics_kappa=np.full((len(annt_responses),len(tweets_topics[0])),1.0)
-             while (batch<nb_tweets):
+             #while (batch<nb_tweets):
+             while (batch<v):    
                
                tweets_topics1=tweets_topics[range(batch,batch+step),]
                groundTruth_temp1=groundTruth_temp[range(batch,batch+step),]
