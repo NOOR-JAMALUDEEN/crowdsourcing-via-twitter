@@ -586,7 +586,7 @@ array_SdAccuracy=[10]
 array_meanLikelihood=[1]##,5,10,15]##,5,10,15]
 array_nb_tweets=[14460]##[100,250,500,1000,5000]
 nb_rounds=1
-rel_annt_percent=0.5
+rel_annt_percent=0.8
 
 step=7230
 result=[]
@@ -1047,11 +1047,11 @@ for nb_t in array_nb_topics:
               writer.writerow(row_csv)
               incsv.close()
          else:'''
-         with open('full_1000_50_laptops_minus.csv', 'a') as incsv:
+         with open('full_1000_80_laptops_minus.csv', 'a') as incsv:
               writer = csv.DictWriter(incsv, fieldnames = ["nb_tweets","nb_topics", "nb_annotators","Dataset","reliable annotators%","Kappa_agreement","Accuracy of Reliability","Majorty Voting topics","Accuracy of Reliability","MV","Accuracy of Reliability","Annotated tweets"])
               writer.writeheader()
               incsv.close() 
-         with open('full_1000_50_laptops_minus.csv', 'a') as incsv:
+         with open('full_1000_80_laptops_minus.csv', 'a') as incsv:
               writer= csv.writer(incsv,lineterminator='\n')
               writer.writerow(row_csv)
               incsv.close()
@@ -1071,7 +1071,7 @@ for nb_t in array_nb_topics:
          row_csv.append(avg_annotated_tweets_NoRanking)
          row_csv.append("NoRanking")
          
-         with open('full_1000_50_laptops_minus.csv', 'a') as incsv:
+         with open('full_1000_80_laptops_minus.csv', 'a') as incsv:
               writer= csv.writer(incsv,lineterminator='\n')
               writer.writerow(row_csv)
               incsv.close()
@@ -1091,7 +1091,7 @@ for nb_t in array_nb_topics:
          row_csv.append(avg_annotated_tweets_incremental)
          row_csv.append("incremental")
          
-         with open('full_1000_50_laptops_minus.csv', 'a') as incsv:
+         with open('full_1000_80_laptops_minus.csv', 'a') as incsv:
               writer= csv.writer(incsv,lineterminator='\n')
               writer.writerow(row_csv)
               incsv.close()
